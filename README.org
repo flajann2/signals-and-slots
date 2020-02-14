@@ -1,0 +1,16 @@
+* Signals and Slots -- a Rust implementation of signals and slots, inspired by Qt's :TOC_5_gh:
+  - [[#introduction][Introduction]]
+  - [[#basic-design][Basic Design]]
+  - [[#documentation][Documentation]]
+  - [[#examples][Examples]]
+  - [[#notes][Notes]]
+
+** Introduction
+   This implementation is intended to be superior to Qt's "signals and slots", becausee
+   the Qt version requires a preprocessor. We want this to be pure Rust, no fuss, no muss,
+   and no preprocessor requirements. This is Rust, after all!
+** Basic Design
+** Documentation
+** Examples
+** Notes
+
