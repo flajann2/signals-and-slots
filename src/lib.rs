@@ -1,5 +1,10 @@
 //! Library for Signals and Slots
 
+// TODO: Remove the following allow directives
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_macros)]
+
 use std::collections::VecDeque;
 use std::ops::{Shl, Shr};
 
@@ -13,19 +18,23 @@ macro_rules! trait_alias {
 
 //trait_alias!(DSL = Shl + Shr +);
 
-pub trait Slot {
+pub trait Slot : std::marker::Sized {
+    type Message;
+    
+    fn mess_received(mess: Self::Message) {
+    }
 }
 
-pub trait Signal<'a, RHS>  : Shl<RHS> + Shr<RHS> {
+pub trait Signal<'a, RHS>  : Shl<RHS> + Shr<RHS> + std::marker::Sized {
     type Message;
     type Output;
     
     /// Add this to the list of signals
-    fn shl(&'a self, slot: &Slot) -> &'a Self where Self: std::marker::Sized {
+    fn shl(&'a self, slot: &RHS) -> &'a Self where Self: std::marker::Sized {
         &self
     }
     
-    fn shr(&'a self, slot: &Slot) -> &'a Self where Self: std::marker::Sized {
+    fn shr(&'a self, slot: &RHS) -> &'a Self where Self: std::marker::Sized {
         &self
     }
 }
@@ -39,7 +48,7 @@ mod tests {
     struct Widget {
     }
 
-    impl Signal for Widget {
+    impl<'a> Signal<'a, Slot<Message = String>> for Widget {
     }
     
     #[test]
