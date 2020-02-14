@@ -10,7 +10,13 @@
    the Qt version requires a preprocessor. We want this to be pure Rust, no fuss, no muss,
    and no preprocessor requirements. This is Rust, after all!
 ** Basic Design
+   Signals must only be loosely coupled to the slots. As a result, 
+   we want signals to be injected into the slots' asynchronous FIFO queue, and the owner
+   of the slot to process the queue in its own "thread". The owner will typically
+   be a widget, but is not limited to that.
+
+   
+
 ** Documentation
 ** Examples
 ** Notes
-
