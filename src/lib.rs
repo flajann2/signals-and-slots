@@ -5,6 +5,9 @@
 #![allow(unused_variables)]
 #![allow(unused_macros)]
 
+use std::vec::Vec;
+use std::iter::Iterator;
+use std::marker::Sized;
 use std::collections::VecDeque;
 use std::ops::{Shl, Shr};
 
@@ -14,45 +17,65 @@ macro_rules! trait_alias {
         impl<T: $base1 $(+ $base2)+> $name for T { }
     };
 }
-
-
 //trait_alias!(DSL = Shl + Shr +);
 
-pub trait Slot : std::marker::Sized {
+macro_rules! signal {
+    ($widget:) => {
+    };
+}
+
+pub trait Slot : Sized {
     type Message;
     
-    fn mess_received(mess: Self::Message) {
+    fn mess_received(mess: Self::Message) where Self: Sized {
     }
 }
 
-pub trait Signal<'a, RHS>  : Shl<RHS> + Shr<RHS> + std::marker::Sized {
+pub trait Signal<'a,  SLOT: 'a>  : Shr<&'a SLOT> + Sized {
     type Message;
+    type List : Iterator;
     type Output;
     
-    /// Add this to the list of signals
-    fn shl(&'a self, slot: &RHS) -> &'a Self where Self: std::marker::Sized {
+    /// Add this to the list of slots
+    fn shr(&'a self, slot: &SLOT) -> &'a Self where Self: Sized {
         &self
     }
-    
-    fn shr(&'a self, slot: &RHS) -> &'a Self where Self: std::marker::Sized {
-        &self
+
+    /// remove the slot from receiving signals
+    fn remove(slot: &SLOT) where Self: Sized {
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
     
     struct Widget {
+        name: String,
     }
 
-    impl<'a> Signal<'a, Slot<Message = String>> for Widget {
+    impl Widget {
+        fn new(name: String) -> Widget {
+            Widget{name}
+        }
+    }
+
+    impl<'a> Signal<'a, &dyn Slot<Message = String>> for Widget {
+        type Output = Self;
+    }
+
+    impl Slot for Widget {
     }
     
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn test_basic_signal_slot() {
+        let a = Widget::new("alpha");
+        let b = Widget::new("beta");
+        let c = Widget::new("gamma");
+        // a is the signal, both b and c are slots to receive a's signals
+        a >> b >> c;
+        
+        // b removes itself from receiving a's signals
+        a.remove(b);        
     }
 }
