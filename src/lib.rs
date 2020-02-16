@@ -1,4 +1,6 @@
 //! Library for Signals and Slots
+#![feature(associated_type_defaults)]
+#![feature(concat_idents)]
 
 // TODO: Remove the following allow directives
 #![allow(unused_imports)]
@@ -10,40 +12,57 @@ use std::iter::Iterator;
 use std::marker::Sized;
 use std::collections::VecDeque;
 use std::ops::{Shl, Shr};
+use std::boxed::Box;
+use std::concat_idents;
 
-macro_rules! trait_alias {
-    ($name:ident = $base1:ident + $($base2:ident +)+) => {
-        trait $name: $base1 $(+ $base2)+ { }
-        impl<T: $base1 $(+ $base2)+> $name for T { }
-    };
-}
-//trait_alias!(DSL = Shl + Shr +);
+extern crate ident;
+use ident::*;
 
-macro_rules! signal {
-    ($widget:) => {
-    };
-}
-
-pub trait Slot : Sized {
-    type Message;
+pub trait Slot<MESS>: Sized {
+    type Message = MESS;
     
     fn mess_received(mess: Self::Message) where Self: Sized {
     }
 }
 
-pub trait Signal<'a,  SLOT: 'a>  : Shr<&'a SLOT> + Sized {
-    type Message;
-    type List : Iterator;
-    type Output;
-    
-    /// Add this to the list of slots
-    fn shr(&'a self, slot: &SLOT) -> &'a Self where Self: Sized {
-        &self
-    }
+pub trait Signal<MESS>: Sized {
+    type List = Vec<MESS>;
 
     /// remove the slot from receiving signals
-    fn remove(slot: &SLOT) where Self: Sized {
+    fn remove(slot: &dyn Slot<MESS, Message = MESS>) {
     }
+}
+
+#[macro_export]
+macro_rules! sigdef {
+    ($widget:path, $($tag:ident : $type:ty),*) => {
+        $(
+            impl Shr<dyn Slot<$type, Message = $type>> for $widget {
+                type Output = Self;
+                
+                // Add this to the list of slots
+                fn shr(self, slot: &dyn Slot<$type, Message = $type>) -> &Self where Self: Sized {
+                    &self
+                }
+            }
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! slotdef {
+    ($widget:path, $($tag:ident : $type:ty),*) => {
+        $(
+            impl Shr<Self> for $widget {
+                type Output = Self;
+                
+                // Add this to the list of slots
+                fn shr(self, slot: &dyn Slot<$type, Message = $type>) -> &Self where Self: Sized {
+                    &self
+                }
+            }
+        )*
+    };
 }
 
 #[cfg(test)]
@@ -54,17 +73,25 @@ mod tests {
         name: String,
     }
 
+    enum WidgetMessages {
+        Str(String),
+        Num(i32),
+        Empty
+    }
+
     impl Widget {
         fn new(name: String) -> Widget {
             Widget{name}
         }
     }
 
-    impl<'a> Signal<'a, &dyn Slot<Message = String>> for Widget {
-        type Output = Self;
+    sigdef!(Widget, fly:WidgetMessages, wings:String);
+    slotdef!(Widget, fly:WidgetMessages);
+    
+    impl<'a> Signal<&dyn Slot<WidgetMessages, Message = WidgetMessages>> for Widget {
     }
 
-    impl Slot for Widget {
+    impl Slot<WidgetMessages> for Widget {
     }
     
     #[test]

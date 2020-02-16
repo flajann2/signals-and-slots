@@ -4,6 +4,7 @@
   - [[#documentation][Documentation]]
   - [[#examples][Examples]]
   - [[#notes][Notes]]
+    - [[#idents-types-and-messages][Idents, types, and messages]]
 
 ** Introduction
    This implementation is intended to be superior to Qt's "signals and slots", becausee
@@ -13,10 +14,30 @@
    Signals must only be loosely coupled to the slots. As a result, 
    we want signals to be injected into the slots' asynchronous FIFO queue, and the owner
    of the slot to process the queue in its own "thread". The owner will typically
-   be a widget, but is not limited to that.
-
-   
-
+   be a widget, but is not limited to that. 
 ** Documentation
+
 ** Examples
+
 ** Notes
+   These are my personal notes. Do not rely on this 
+   for anything, as I do not promise to keep them up-to-date,
+   and they will most likely be deleted on the main trunk.
+
+*** Idents, types, and messages
+    To simplify things, all the attached slots will receive
+    all the signals from the signaler, and will simply
+    have to discard those messages it does not want.
+
+    We will stay with ident:type specifications on sigdef!().
+    
+    On slotdef!(), we must also specify ident:type, but only
+    of the ones it wants. The rest will be discarded or ignored.
+
+    The signaler will inject the messages into the queues the
+    slots have, and the slots will handle the incoming messages
+    asynchronously, to maintain loose coupling among the widgets.
+
+    How we acheive the processing of the queued messages is still
+    to be decided.
+
