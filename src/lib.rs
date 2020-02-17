@@ -18,87 +18,68 @@ use std::concat_idents;
 extern crate ident;
 use ident::*;
 
-pub trait Slot<MESS> {
-    type Message = MESS;
-    
-    fn mess_received(mess: Self::Message) where Self: Sized {
-    }
-}
-
-pub trait Signal<MESS>: Sized {
-    type List = Vec<MESS>;
-
-    /// remove the slot from receiving signals
-    fn remove(slot: &dyn Slot<MESS, Message = MESS>) {
-    }
+pub trait Widget  {
+    fn mess_received<MESS> (self, mess: MESS);
+    fn remove(self, slot: &dyn Widget);
 }
 
 #[macro_export]
-macro_rules! sigdef {
-    ($widget:path, $($tag:ident : $type:ty),*) => {
-        $(
-            impl Shr<dyn Slot<$type, Message = $type>> for $widget {
-                type Output = Self;
-                
-                // Add this to the list of slots
-                fn shr(self, slot: &dyn Slot<$type, Message = $type>) -> &Self where Self: Sized {
-                    &self
-                }
-            }
-        )*
-    };
-}
+macro_rules! transceiver {
+    (struct $widget:ident { $($tt:tt)* } with_message = $message:path; ) => {
+        struct $widget<'a> { $($tt)*
+                         boilerplate: i32,
+                         slots: Vec<&'a dyn Widget>,
+                         messages: Vec<$message>,
+        }
 
-#[macro_export]
-macro_rules! slotdef {
-    ($widget:path, $($tag:ident : $type:ty),*) => {
-        $(
-            impl Shr<Self> for $widget {
-                type Output = Self;
-                
-                // Add this to the list of slots
-                fn shr(self, slot: &dyn Slot<$type, Message = $type>) -> &Self where Self: Sized {
-                    &self
-                }
+        impl <'a> Shr<dyn Widget> for $widget<'a> {
+            type Output = Self;
+            
+            // Add this to the list of slots
+            fn shr(self, slot: &dyn Widget) -> &Self
+            where Self: Sized {
+                &self
             }
-        )*
+        }
+
+        impl <'a> Widget for $widget<'a> {
+            fn mess_received(mess: $message) {
+            }
+
+            fn remove(slot: &Self) {
+            }
+        }
     };
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
-    struct Widget {
-        name: String,
-    }
 
-    enum WidgetMessages {
+    enum SlideWMessage {
         Str(String),
         Num(i32),
         Empty
     }
+ 
+    transceiver! {
+        struct SlideW {
+            name: String,
+        } with_message = SlideWMessage;
+    }
 
-    impl Widget {
-        fn new(name: String) -> Widget {
-            Widget{name}
+    impl <'a> SlideW<'a> {
+        fn new(name: String) -> SlideW<'a> {
+            SlideW{name}
         }
     }
 
-    sigdef!(Widget, fly:WidgetMessages, wings:String);
-    slotdef!(Widget, fly:WidgetMessages);
-    
-    impl<'a> Signal<&dyn Slot<WidgetMessages, Message = WidgetMessages>> for Widget {
-    }
-
-    impl Slot<WidgetMessages> for Widget {
-    }
     
     #[test]
     fn test_basic_signal_slot() {
-        let a = Widget::new("alpha");
-        let b = Widget::new("beta");
-        let c = Widget::new("gamma");
+        let a = SlideW::new("alpha");
+        let b = SlideW::new("beta");
+        let c = SlideW::new("gamma");
         // a is the signal, both b and c are slots to receive a's signals
         a >> b >> c;
         
