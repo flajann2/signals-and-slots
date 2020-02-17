@@ -18,7 +18,7 @@ use std::concat_idents;
 extern crate ident;
 use ident::*;
 
-pub trait Slot<MESS>: Sized {
+pub trait Slot<MESS> {
     type Message = MESS;
     
     fn mess_received(mess: Self::Message) where Self: Sized {
