@@ -13,40 +13,55 @@ use std::marker::Sized;
 use std::collections::VecDeque;
 use std::ops::{Shl, Shr};
 use std::boxed::Box;
-use std::concat_idents;
+use std::any::Any;
+use std::default::Default;
 
 extern crate ident;
 use ident::*;
 
-pub trait Widget  {
-    fn mess_received<MESS> (self, mess: MESS);
+
+pub trait Widget {
+    fn mess_received (self, mess: &dyn Any);
     fn remove(self, slot: &dyn Widget);
 }
 
+
 #[macro_export]
 macro_rules! transceiver {
-    (struct $widget:ident { $($tt:tt)* } with_message = $message:path; ) => {
-        struct $widget<'a> { $($tt)*
+    (struct $widget:ident<$a:tt> { $($tt:tt)* } with_message = $message:path; ) => {
+        struct $widget<$a> { $($tt)*
                          boilerplate: i32,
-                         slots: Vec<&'a dyn Widget>,
+                         slots: Vec<&$a dyn Widget>,
                          messages: Vec<$message>,
         }
 
-        impl <'a> Shr<dyn Widget> for $widget<'a> {
+        impl<$a> Shr<&$a dyn Widget> for $widget<$a> {
             type Output = Self;
             
             // Add this to the list of slots
-            fn shr(self, slot: &dyn Widget) -> &Self
-            where Self: Sized {
+            fn shr(&$a self, slot: &$a dyn Widget) -> &$a Self {
                 &self
             }
         }
 
-        impl <'a> Widget for $widget<'a> {
-            fn mess_received(mess: $message) {
+        impl <$a> Widget for $widget<$a> {
+            fn mess_received(self, mess: &dyn Any) {
             }
 
-            fn remove(slot: &Self) {
+            fn remove(self, slot: &dyn Widget) {
+            }
+        }
+
+        impl <$a> Default for $widget<$a> {
+            fn default() -> $widget<$a> {
+                $widget {
+                    boilerplate: 0,
+                    slots: vec![],
+                    messages: vec![],
+                    name: String::from("")
+                        
+                };
+                
             }
         }
     };
@@ -63,14 +78,14 @@ mod tests {
     }
  
     transceiver! {
-        struct SlideW {
+        struct SlideW<'a> {
             name: String,
         } with_message = SlideWMessage;
     }
 
     impl <'a> SlideW<'a> {
         fn new(name: String) -> SlideW<'a> {
-            SlideW{name}
+            SlideW{name, ..Default::default()}
         }
     }
 

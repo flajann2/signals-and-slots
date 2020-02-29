@@ -5,6 +5,7 @@
   - [[#examples][Examples]]
   - [[#notes][Notes]]
     - [[#idents-types-and-messages][Idents, types, and messages]]
+    - [[#syntactic-sugar][Syntactic Sugar]]
 
 ** Introduction
    This implementation is intended to be superior to Qt's "signals and slots", becausee
@@ -40,4 +41,42 @@
 
     How we acheive the processing of the queued messages is still
     to be decided.
+
+*** Syntactic Sugar
+    After a short coversation with a couple of fellows on the
+    rust-usage group (Discord), I think I will settle on
+    something like:
+
+    #+begin_src rust
+    wire! button -> flash + ding + logger
+    #+end_src
+
+    Or maybe even
+
+    #+begin_src rust
+    wire! button to flash + ding + logger
+    #+end_src
+
+    Instead of 
+
+    #+begin_src rust
+    button >> &flash >> &ding >> &logger;
+    #+end_src
+
+    It will be simpler to implement, and will give me
+    more precise control over the DSL that will not 
+    be so much constrained by Rust syntax per se. As in, I can
+    control borrowing semantics inside of the macro itself.
+
+    Will there ever be a need for the user to control borrowing
+    semantics himself? Almost always, wiring up the widgets 
+    to send messages to each other entails a lifetime
+    requirement that will (almost) never be just a mere rvalue.
+
+    Though, potentially a dialog box might be like that, a temporary 
+    entitiy allocated on the stack.
+
+    Now, there are other syntactic sugar issues with regards to actual
+    widgets anyway, which shall be addressed in zuse-gui.
+
 
