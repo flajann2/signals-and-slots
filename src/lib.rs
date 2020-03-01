@@ -58,8 +58,11 @@ macro_rules! gizmo {
     };
 }
 
+#[macro_export]
 macro_rules! wire {
     ($emitter:ident to $head:ident $(+ $tail:ident)*) => {
+        $emitter.slots.push(&$head);
+        $($emitter.slots.push(&$tail);)*
     }
 }
 
@@ -88,12 +91,13 @@ mod tests {
     
     #[test]
     fn test_basic_signal_slot() {
-        let a = SlideW::new("alpha");
-        let b = SlideW::new("beta");
-        let c = SlideW::new("gamma");
+        let mut a = SlideW::new("alpha");
+        let mut b = SlideW::new("beta");
+        let mut c = SlideW::new("gamma");
         // a is the signal, both b and c are slots to receive a's signals
-        wire!{ a to b + c + b };
-        
+        wire!{ a to b + c };
+        wire!{ c to a + b };
+
         // b removes itself from receiving a's signals
         a.remove(&b);        
     }
