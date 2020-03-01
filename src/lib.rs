@@ -11,7 +11,6 @@ use std::vec::Vec;
 use std::iter::Iterator;
 use std::marker::Sized;
 use std::collections::VecDeque;
-use std::ops::{Shl, Shr};
 use std::boxed::Box;
 use std::any::Any;
 use std::default::Default;
@@ -20,35 +19,29 @@ extern crate ident;
 use ident::*;
 
 
-pub trait Widget {
-    fn mess_received (self, mess: &dyn Any);
-    fn remove(self, slot: &dyn Widget);
+pub trait Gizmo {
+    fn emit_message(self, mess: &dyn Any);
+    fn receive_message (self, mess: &dyn Any);
+    fn remove(self, slot: &dyn Gizmo);
 }
 
-
 #[macro_export]
-macro_rules! transceiver {
+macro_rules! gizmo {
     (struct $widget:ident<$a:tt> { $($tt:tt)* } with_message = $message:path; ) => {
         struct $widget<$a> { $($tt)*
                          boilerplate: i32,
-                         slots: Vec<&$a dyn Widget>,
+                         slots: Vec<&$a dyn Gizmo>,
                          messages: Vec<$message>,
         }
 
-        impl<$a> Shr<&$a dyn Widget> for $widget<$a> {
-            type Output = Self;
+        impl <$a> Gizmo for $widget<$a> {
+            fn emit_message(self, mess: &dyn Any) {
+            }
             
-            // Add this to the list of slots
-            fn shr(&$a self, slot: &$a dyn Widget) -> &$a Self {
-                &self
-            }
-        }
-
-        impl <$a> Widget for $widget<$a> {
-            fn mess_received(self, mess: &dyn Any) {
+            fn receive_message(self, mess: &dyn Any) {
             }
 
-            fn remove(self, slot: &dyn Widget) {
+            fn remove(self, slot: &dyn Gizmo) {
             }
         }
 
@@ -58,13 +51,16 @@ macro_rules! transceiver {
                     boilerplate: 0,
                     slots: vec![],
                     messages: vec![],
-                    name: String::from("")
-                        
-                };
-                
+                    name: String::from("")                        
+                }                
             }
         }
     };
+}
+
+macro_rules! wire {
+    ($emitter:ident to $head:ident $(+ $tail:ident)*) => {
+    }
 }
 
 #[cfg(test)]
@@ -77,15 +73,15 @@ mod tests {
         Empty
     }
  
-    transceiver! {
+    gizmo! {
         struct SlideW<'a> {
             name: String,
         } with_message = SlideWMessage;
     }
 
     impl <'a> SlideW<'a> {
-        fn new(name: String) -> SlideW<'a> {
-            SlideW{name, ..Default::default()}
+        fn new(name: &str) -> SlideW<'a> {
+            SlideW{name: name.to_string(), ..Default::default()}
         }
     }
 
@@ -96,9 +92,9 @@ mod tests {
         let b = SlideW::new("beta");
         let c = SlideW::new("gamma");
         // a is the signal, both b and c are slots to receive a's signals
-        a >> b >> c;
+        wire!{ a to b + c + b };
         
         // b removes itself from receiving a's signals
-        a.remove(b);        
+        a.remove(&b);        
     }
 }
