@@ -7,8 +7,9 @@
 #![allow(unused_variables)]
 #![allow(unused_macros)]
 
-mod rrcell;
+pub mod rrcell;
 
+use rrcell::RRCell;
 use std::vec::Vec;
 use std::iter::Iterator;
 use std::marker::Sized;
@@ -19,7 +20,7 @@ use std::default::Default;
 
 use std::rc::Rc;
 use std::cell::{RefCell,Ref, RefMut};
-
+    
 extern crate ident;
 use ident::*;
 
@@ -33,9 +34,10 @@ pub trait Gizmo {
 #[macro_export]
 macro_rules! gizmo {
     (struct $widget:ident<$a:tt> { $($tt:tt)* } with_message = $message:path; ) => {
+
         struct $widget<$a> { $($tt)*
                          boilerplate: i32,
-                         slots: Vec<Rc<RefCell<&$a dyn Gizmo>>>,
+                         slots: Vec<RRCell<&$a dyn Gizmo>>,
                          messages: Vec<$message>,
         }
 
@@ -66,8 +68,8 @@ macro_rules! gizmo {
 #[macro_export]
 macro_rules! wire {
     ($emitter:ident to $head:ident $(+ $tail:ident)*) => {{
-        $emitter.slots.push(Rc::new(RefCell::new(&mut $head)));
-        $($emitter.slots.push(Rc::new(RefCell::new(&mut $tail)));)*
+        $emitter.slots.push($head.clone());
+        $($emitter.slots.push($tail.clone());)*
     }}
 }
 
@@ -88,17 +90,17 @@ mod tests {
     }
 
     impl <'a> SlideW<'a> {
-        fn new(name: &str) -> SlideW<'a> {
-            SlideW{name: name.to_string(), ..Default::default()}
+        fn new(name: &str) -> RRCell<SlideW<'a>> {
+            RRCell::new(SlideW{name: name.to_string(), ..Default::default()})
         }
     }
 
     
     #[test]
     fn test_basic_signal_slot() {
-        let mut a = SlideW::new("alpha");
-        let mut b = SlideW::new("beta");
-        let mut c = SlideW::new("gamma");
+        let a = SlideW::new("alpha");
+        let b = SlideW::new("beta");
+        let c = SlideW::new("gamma");
         // a is the signal, both b and c are slots to receive a's signals
         wire!{ a to b + c };
         wire!{ c to a + b };
