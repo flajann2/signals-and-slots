@@ -7,6 +7,8 @@
 #![allow(unused_variables)]
 #![allow(unused_macros)]
 
+mod rrcell;
+
 use std::vec::Vec;
 use std::iter::Iterator;
 use std::marker::Sized;
@@ -14,6 +16,9 @@ use std::collections::VecDeque;
 use std::boxed::Box;
 use std::any::Any;
 use std::default::Default;
+
+use std::rc::Rc;
+use std::cell::{RefCell,Ref, RefMut};
 
 extern crate ident;
 use ident::*;
@@ -30,7 +35,7 @@ macro_rules! gizmo {
     (struct $widget:ident<$a:tt> { $($tt:tt)* } with_message = $message:path; ) => {
         struct $widget<$a> { $($tt)*
                          boilerplate: i32,
-                         slots: Vec<&$a dyn Gizmo>,
+                         slots: Vec<Rc<RefCell<&$a dyn Gizmo>>>,
                          messages: Vec<$message>,
         }
 
@@ -60,10 +65,10 @@ macro_rules! gizmo {
 
 #[macro_export]
 macro_rules! wire {
-    ($emitter:ident to $head:ident $(+ $tail:ident)*) => {
-        $emitter.slots.push(&$head);
-        $($emitter.slots.push(&$tail);)*
-    }
+    ($emitter:ident to $head:ident $(+ $tail:ident)*) => {{
+        $emitter.slots.push(Rc::new(RefCell::new(&mut $head)));
+        $($emitter.slots.push(Rc::new(RefCell::new(&mut $tail)));)*
+    }}
 }
 
 #[cfg(test)]
