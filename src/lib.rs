@@ -37,7 +37,7 @@ macro_rules! gizmo {
         #[derive(Clone)]
         struct $widget<$a> { $($tt)*
                          boilerplate: i32,
-                         slots: Vec<RRCell<&$a dyn Gizmo>>,
+                         slots: Vec<RRCell<$widget<$a>>>,
                          messages: Vec<$message>,
         }
 
@@ -68,9 +68,15 @@ macro_rules! gizmo {
 #[macro_export]
 macro_rules! wire {
     ($emitter:ident to $head:ident $(+ $tail:ident)*) => {{
-        $emitter.slots.push($head.clone());
-        $($emitter.slots.push($tail.clone());)*
+        $emitter.borrow_mut().slots.push($head.clone());
+        $($emitter.borrow_mut().slots.push($tail.clone());)*
     }}
+}
+
+#[macro_export]
+macro_rules! snip {
+    ($this_widget:ident from $emmiter:ident) => {
+    }
 }
 
 #[cfg(test)]
@@ -107,6 +113,6 @@ mod tests {
         wire!{ c to a + b };
 
         // b removes itself from receiving a's signals
-        a.remove(&b);        
+        snip!(b from a);        
     }
 }
