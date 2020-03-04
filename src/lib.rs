@@ -34,7 +34,7 @@ pub trait Gizmo {
 #[macro_export]
 macro_rules! gizmo {
     (struct $widget:ident<$a:tt> { $($tt:tt)* } with_message = $message:path; ) => {
-
+        #[derive(Clone)]
         struct $widget<$a> { $($tt)*
                          boilerplate: i32,
                          slots: Vec<RRCell<&$a dyn Gizmo>>,
@@ -77,6 +77,7 @@ macro_rules! wire {
 mod tests {
     use super::*;
 
+    #[derive(Clone)]
     enum SlideWMessage {
         Str(String),
         Num(i32),

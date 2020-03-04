@@ -6,22 +6,22 @@ use std::ops::Deref;
 use std::fmt;
 
 #[derive(Clone)]
-pub struct RRCell<'a, T> {
-    v: Rc<RefCell<&'a T>>
+pub struct RRCell<T> {
+    v: Rc<RefCell<T>>
 }
 
-impl <'a, T> RRCell<'a, T> {
-    pub fn new(t: &'a T)-> RRCell<'a, T> {
+impl <T> RRCell<T> {
+    pub fn new(t: T)-> RRCell<T> {
         RRCell{v: Rc::new(RefCell::new(t))}
     }
 }
 
-impl <'a, T> RRCell<'a, T> {
-    fn borrow(&self) -> Ref<&T> {
+impl <T> RRCell<T> {
+    pub fn borrow(&self) -> Ref<T> {
         self.v.borrow()
     }
 
-    fn borrow_mut(&self) -> RefMut<&'a T> {
+    pub fn borrow_mut(&self) -> RefMut<T> {
         self.v.borrow_mut()
     }
 
@@ -31,19 +31,19 @@ impl <'a, T> RRCell<'a, T> {
 }
 
 
-impl <'a, T: fmt::Display> fmt::Display for RRCell<'a, T> {
+impl <T: fmt::Display> fmt::Display for RRCell<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.deref())
     }
 }
 
-impl <'a, T: fmt::Debug> fmt::Debug for RRCell<'_, &'a T> {
+impl <T: fmt::Debug> fmt::Debug for RRCell<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self.deref())
     }
 }
 
-impl <'a, T> Deref for RRCell<'a, T>{
+impl <'a, T> Deref for RRCell<T>{
     type Target = T;
 
     #[inline]
