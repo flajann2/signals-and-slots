@@ -1,4 +1,13 @@
-//! Basic Sharing mechanism
+//! RRCell Sharing mechanism
+//! RRCell owns the object that is to be
+//! shared, and allows it to be so through borrow() and
+//! borrow_mut().
+//!
+//! The wrapper object is cloned though
+//! the sharing process, but the shared
+//! object itself is not, allowing it to
+//! be aliased in a safe manner.
+
 
 use std::rc::Rc;
 use std::cell::{RefCell, Ref, RefMut};
@@ -17,10 +26,13 @@ impl <T> RRCell<T> {
 }
 
 impl <T> RRCell<T> {
+    /// borrow the underlying shared object.
     pub fn borrow(&self) -> Ref<T> {
         self.v.borrow()
     }
 
+    /// borrow the underlying shared object,
+    /// allowing it to be mutable.
     pub fn borrow_mut(&self) -> RefMut<T> {
         self.v.borrow_mut()
     }

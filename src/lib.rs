@@ -25,10 +25,10 @@ extern crate ident;
 use ident::*;
 
 
-pub trait Gizmo {
-    fn emit_message(self, mess: &dyn Any);
-    fn receive_message (self, mess: &dyn Any);
-    fn remove(self, slot: &dyn Gizmo);
+pub trait Gizmo<T> {
+    fn emit_message(self, mess: &T);
+    fn receive_message (self, mess: T);
+    fn remove(self, slot: &dyn Gizmo<T>);
 }
 
 #[macro_export]
@@ -41,14 +41,14 @@ macro_rules! gizmo {
                          messages: Vec<$message>,
         }
 
-        impl <$a> Gizmo for $widget<$a> {
-            fn emit_message(self, mess: &dyn Any) {
+        impl <$a> Gizmo<$message> for $widget<$a> {
+            fn emit_message(self, mess: &$message) {
             }
             
-            fn receive_message(self, mess: &dyn Any) {
+            fn receive_message(self, mess: $message) {
             }
 
-            fn remove(self, slot: &dyn Gizmo) {
+            fn remove(self, slot: &dyn Gizmo<$message>) {
             }
         }
 
@@ -100,6 +100,10 @@ mod tests {
         fn new(name: &str) -> RRCell<SlideW<'a>> {
             RRCell::new(SlideW{name: name.to_string(), ..Default::default()})
         }
+
+        fn send(self, mess: &'a SlideWMessage) {
+            self.emit_message(mess);
+        }
     }
 
     
@@ -108,10 +112,13 @@ mod tests {
         let a = SlideW::new("alpha");
         let b = SlideW::new("beta");
         let c = SlideW::new("gamma");
+        
         // a is the signal, both b and c are slots to receive a's signals
         wire!{ a to b + c };
         wire!{ c to a + b };
 
+        // Send messages to 
+        
         // b removes itself from receiving a's signals
         snip!(b from a);        
     }
