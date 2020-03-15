@@ -8,44 +8,53 @@
     - [[#syntactic-sugar][Syntactic Sugar]]
 
 ** Introduction
-   This implementation is intended to be superior to Qt's "signals and slots", becausee
-   the Qt version requires a preprocessor. We want this to be pure Rust, no fuss, no muss,
-   and no preprocessor requirements. This is Rust, after all!
+   This implementation is intended to be superior to
+   Qt's "signals and slots", becausee the Qt version
+   requires a preprocessor. We want this to be pure
+   Rust, no fuss, no muss, and no preprocessor
+   requirements. This is Rust, after all!
 ** Basic Design
-   Signals must only be loosely coupled to the slots. As a result, 
-   we want signals to be injected into the slots' asynchronous FIFO queue, and the owner
-   of the slot to process the queue in its own "thread". The owner will typically
-   be a widget, but is not limited to that. 
+   Signals must only be loosely coupled to the
+   slots. As a result, we want signals to be injected
+   into the slots' asynchronous FIFO queue, and the
+   owner of the slot to process the queue in its own
+   "thread". The owner will typically be a widget, but
+   is not limited to that.
 ** Documentation
 
 ** Examples
 
 ** Notes
-   These are my personal notes. Do not rely on this 
-   for anything, as I do not promise to keep them up-to-date,
-   and they will most likely be deleted on the main trunk.
+   These are my personal notes. Do not rely on this for
+   anything, as I do not promise to keep them
+   up-to-date, and they will most likely be deleted on
+   the main trunk.
 
 *** Idents, types, and messages
-    To simplify things, all the attached slots will receive
-    all the signals from the signaler, and will simply
-    have to discard those messages it does not want.
+    To simplify things, all the attached slots will
+    receive all the signals from the signaler, and will
+    simply have to discard those messages it does not
+    want.
 
-    We will stay with ident:type specifications on sigdef!().
+    We will stay with ident:type specifications on
+    sigdef!().
     
-    On slotdef!(), we must also specify ident:type, but only
-    of the ones it wants. The rest will be discarded or ignored.
+    On slotdef!(), we must also specify ident:type, but
+    only of the ones it wants. The rest will be
+    discarded or ignored.
 
-    The signaler will inject the messages into the queues the
-    slots have, and the slots will handle the incoming messages
-    asynchronously, to maintain loose coupling among the widgets.
+    The signaler will inject the messages into the
+    queues the slots have, and the slots will handle
+    the incoming messages asynchronously, to maintain
+    loose coupling among the widgets.
 
-    How we acheive the processing of the queued messages is still
-    to be decided.
+    How we acheive the processing of the queued
+    messages is still to be decided.
 
 *** Syntactic Sugar
-    After a short coversation with a couple of fellows on the
-    rust-usage group (Discord), I think I will settle on
-    something like:
+    After a short coversation with a couple of fellows
+    on the rust-usage group (Discord), I think I will
+    settle on something like:
 
     #+begin_src rust
     wire! button -> flash + ding + logger
@@ -64,19 +73,22 @@
     #+end_src
 
     It will be simpler to implement, and will give me
-    more precise control over the DSL that will not 
-    be so much constrained by Rust syntax per se. As in, I can
-    control borrowing semantics inside of the macro itself.
+    more precise control over the DSL that will not be
+    so much constrained by Rust syntax per se. As in, I
+    can control borrowing semantics inside of the macro
+    itself.
 
-    Will there ever be a need for the user to control borrowing
-    semantics himself? Almost always, wiring up the widgets 
-    to send messages to each other entails a lifetime
-    requirement that will (almost) never be just a mere rvalue.
+    Will there ever be a need for the user to control
+    borrowing semantics himself? Almost always, wiring
+    up the widgets to send messages to each other
+    entails a lifetime requirement that will (almost)
+    never be just a mere rvalue.
 
-    Though, potentially a dialog box might be like that, a temporary 
-    entitiy allocated on the stack.
+    Though, potentially a dialog box might be like
+    that, a temporary entitiy allocated on the stack.
 
-    Now, there are other syntactic sugar issues with regards to actual
-    widgets anyway, which shall be addressed in zuse-gui.
+    Now, there are other syntactic sugar issues with
+    regards to actual widgets anyway, which shall be
+    addressed in zuse-gui.
 
 

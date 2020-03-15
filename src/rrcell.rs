@@ -34,7 +34,8 @@ impl <T> RRCell<T> {
     /// borrow the underlying shared object,
     /// allowing it to be mutable.
     pub fn borrow_mut(&self) -> RefMut<T> {
-        self.v.borrow_mut()
+        let r = self.v.borrow_mut();
+        r
     }
 
     fn as_ptr(&self) -> *mut T {
@@ -74,9 +75,9 @@ mod tests {
 
     #[test]
     fn test_rrcell() {
-        let s = RRCell::new("hello".to_string());
+        let s = RRCell::new("Good morning".to_string());
         let s2 = s.clone();
-        s2.borrow_mut().push('!');
+        s.borrow_mut().push('!');
         println!("{:?}",s2);
         
         // Deref kicking in...
@@ -85,7 +86,7 @@ mod tests {
         println!("{:?}", n);
         
         // mutation has to be explicit
-        s2.borrow_mut().push_str(" dolly");
+        s2.borrow_mut().push_str(" Dr. Chandra");
         
         println!("{:?} {}",s2.borrow(), s);
         

@@ -26,9 +26,9 @@ use ident::*;
 
 
 pub trait Gizmo<T> {
-    fn emit_message(self, mess: &T);
-    fn receive_message (self, mess: T);
-    fn remove(self, slot: &dyn Gizmo<T>);
+    fn emit_message(&self, mess: &T);
+    fn receive_message(&self, mess: T);
+    fn remove(&self, slot: &dyn Gizmo<T>);
 }
 
 #[macro_export]
@@ -42,13 +42,13 @@ macro_rules! gizmo {
         }
 
         impl <$a> Gizmo<$message> for $widget<$a> {
-            fn emit_message(self, mess: &$message) {
+            fn emit_message(&self, mess: &$message) {
             }
             
-            fn receive_message(self, mess: $message) {
+            fn receive_message(&self, mess: $message) {
             }
 
-            fn remove(self, slot: &dyn Gizmo<$message>) {
+            fn remove(&self, slot: &dyn Gizmo<$message>) {
             }
         }
 
@@ -84,24 +84,24 @@ mod tests {
     use super::*;
 
     #[derive(Clone)]
-    enum SlideWMessage {
+    enum SlideMessage {
         Str(String),
         Num(i32),
         Empty
     }
  
     gizmo! {
-        struct SlideW<'a> {
+        struct SlideWidget<'a> {
             name: String,
-        } with_message = SlideWMessage;
+        } with_message = SlideMessage;
     }
 
-    impl <'a> SlideW<'a> {
-        fn new(name: &str) -> RRCell<SlideW<'a>> {
-            RRCell::new(SlideW{name: name.to_string(), ..Default::default()})
+    impl <'a> SlideWidget<'a> {
+        fn new(name: &str) -> RRCell<SlideWidget<'a>> {
+            RRCell::new(SlideWidget{name: name.to_string(), ..Default::default()})
         }
 
-        fn send(self, mess: &'a SlideWMessage) {
+        fn send(&self, mess: &'a SlideMessage) {
             self.emit_message(mess);
         }
     }
@@ -109,15 +109,25 @@ mod tests {
     
     #[test]
     fn test_basic_signal_slot() {
-        let a = SlideW::new("alpha");
-        let b = SlideW::new("beta");
-        let c = SlideW::new("gamma");
+        let a = SlideWidget::new("alpha");
+        let b = SlideWidget::new("beta");
+        let c = SlideWidget::new("gamma");
+
+        use SlideMessage::*;
+
+        let m1 = Str("Come to mama".to_string());
+        let m2 = Num(2001);
+        let m3 = Empty;
         
         // a is the signal, both b and c are slots to receive a's signals
         wire!{ a to b + c };
         wire!{ c to a + b };
 
-        // Send messages to 
+        // Send messages to listeners
+        let t = a.borrow_mut();
+        t.send(&m1);
+        t.send(&m2);
+        t.send(&m3);
         
         // b removes itself from receiving a's signals
         snip!(b from a);        
