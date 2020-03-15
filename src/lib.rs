@@ -124,10 +124,9 @@ mod tests {
         wire!{ c to a + b };
 
         // Send messages to listeners
-        let t = a.borrow_mut();
-        t.send(&m1);
-        t.send(&m2);
-        t.send(&m3);
+        a.borrow_mut().send(&m1);
+        a.borrow_mut().send(&m2);
+        a.borrow_mut().send(&m3);
         
         // b removes itself from receiving a's signals
         snip!(b from a);        
