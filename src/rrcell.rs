@@ -110,4 +110,17 @@ mod tests {
         
         println!("{:?}", split(s2.clone()));
     }
+
+    fn test_foo() {
+        use crossbeam_channel::unbounded;
+        
+        // Create a channel of unbounded capacity.
+        let (s, r) = unbounded();
+        
+        // Send a message into the channel.
+        s.send("Hello, world!").unwrap();
+        
+        // Receive the message from the channel.
+        assert_eq!(r.recv(), Ok("Hello, world!"));
+    }
 }

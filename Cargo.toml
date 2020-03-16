@@ -13,3 +13,5 @@ opt-level = 3
 
 [dependencies]
 ident = "0.3.10"
+crossbeam = "0.7.3"
+
