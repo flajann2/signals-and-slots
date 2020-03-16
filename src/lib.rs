@@ -25,9 +25,9 @@ extern crate ident;
 use ident::*;
 
 
-pub trait Gizmo<T> {
-    fn emit_message(&self, mess: &T);
-    fn receive_message(&self, mess: T);
+pub trait Gizmo<'a, T> {
+    fn emit_message(&self, mess: &'a T);
+    fn receive_message(&mut self, mess: &'a T);
     fn remove(&self, slot: &dyn Gizmo<T>);
 }
 
@@ -38,14 +38,18 @@ macro_rules! gizmo {
         struct $widget<$a> { $($tt)*
                          boilerplate: i32,
                          slots: Vec<RRCell<$widget<$a>>>,
-                         messages: Vec<$message>,
+                         messages: VecDeque<&$a $message>,
         }
 
-        impl <$a> Gizmo<$message> for $widget<$a> {
-            fn emit_message(&self, mess: &$message) {
+        impl <$a> Gizmo<$a, $message> for $widget<$a> {
+            fn emit_message(&self, mess: &$a $message) {
+                self.slots
+                    .iter()
+                    .for_each(|w| w.receive_message(mess));
             }
             
-            fn receive_message(&self, mess: $message) {
+            fn receive_message(&mut self, mess: &$a $message) {
+                self.messages.push_back(mess);
             }
 
             fn remove(&self, slot: &dyn Gizmo<$message>) {
@@ -57,7 +61,7 @@ macro_rules! gizmo {
                 $widget {
                     boilerplate: 0,
                     slots: vec![],
-                    messages: vec![],
+                    messages: VecDeque::from(vec![]),
                     name: String::from("")                        
                 }                
             }

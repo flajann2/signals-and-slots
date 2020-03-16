@@ -11,7 +11,7 @@
 
 use std::rc::Rc;
 use std::cell::{RefCell, Ref, RefMut};
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::fmt;
 
 #[derive(Clone)]
@@ -41,6 +41,10 @@ impl <T> RRCell<T> {
     fn as_ptr(&self) -> *mut T {
         self.v.as_ptr()
     }
+
+    fn as_mut_ptr(&mut self) -> *mut T {
+        self.v.as_ptr()
+    }
 }
 
 
@@ -64,6 +68,16 @@ impl <'a, T> Deref for RRCell<T>{
         unsafe {self.as_ptr().as_ref().unwrap()}
     }
 }
+
+
+impl <'a, T> DerefMut for RRCell<T>{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut T {
+        unsafe {self.as_mut_ptr().as_ref().as_mut().unwrap()}
+    }
+}
+
+
 
 #[cfg(test)]
 mod tests {
