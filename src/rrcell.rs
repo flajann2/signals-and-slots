@@ -65,19 +65,23 @@ impl <'a, T> Deref for RRCell<T>{
 
     #[inline]
     fn deref(&self) -> &T {
-        unsafe {self.as_ptr().as_ref().unwrap()}
+        unsafe {self
+                .as_ptr()
+                .as_ref()
+                .unwrap()}
     }
 }
-
 
 impl <'a, T> DerefMut for RRCell<T>{
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
-        unsafe {self.as_mut_ptr().as_ref().as_mut().unwrap()}
+        unsafe {self
+                .as_mut_ptr()
+                .as_ref()
+                .as_mut()
+                .unwrap()}
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
