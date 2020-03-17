@@ -75,11 +75,12 @@ impl <'a, T> Deref for RRCell<T>{
 impl <'a, T> DerefMut for RRCell<T>{
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
-        unsafe {self
+        unsafe {
+            let u = self
                 .as_mut_ptr()
                 .as_ref()
-                .as_mut()
-                .unwrap()}
+                .as_mut();
+                u.unwrap()}
     }
 }
 
